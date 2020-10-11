@@ -27,9 +27,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -42,6 +44,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.teamcode.drive.SampleTankDrive;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +85,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  * is explained below.
  */
 
-@TeleOp(name="SKYSTONE Vuforia Nav Webcam", group ="Concept")
+@TeleOp(name="COPIED Vuforia Nav Webcam", group ="Concept")
 public class ConceptVuforiaSkyStoneNavigationWebcam extends LinearOpMode {
 
     // IMPORTANT: If you are using a USB WebCam, you must select CAMERA_CHOICE = BACK; and PHONE_IS_PORTRAIT = false;
@@ -268,7 +271,9 @@ public class ConceptVuforiaSkyStoneNavigationWebcam extends LinearOpMode {
         // CONSEQUENTLY do not put any driving commands in this loop.
         // To restore the normal opmode structure, just un-comment the following line:
 
-        // waitForStart();
+        waitForStart();
+        SampleTankDrive drive = new SampleTankDrive(hardwareMap);
+        Pose2d startPose = new Pose2d();
 
         // Note: To use the remote camera preview:
         // AFTER you hit Init on the Driver Station, use the "options menu" to select "Camera Stream"
@@ -304,12 +309,23 @@ public class ConceptVuforiaSkyStoneNavigationWebcam extends LinearOpMode {
                 // express the rotation of the robot in degrees.
                 Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                 telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+
+                startPose = new Pose2d(translation.get(0)/ mmPerInch, translation.get(1)/ mmPerInch, Math.toRadians(rotation.thirdAngle - 90));
+                drive.setPoseEstimate(startPose);
             }
             else {
                 telemetry.addData("Visible Target", "none");
             }
             telemetry.update();
+
+            if (gamepad1.b) {
+                Trajectory traj = drive.trajectoryBuilder(startPose)
+                        .splineTo(new Vector2d(-10,0), 0)
+                        .build();
+                drive.followTrajectory(traj);
+            }
         }
+
 
         // Disable Tracking when we are done;
         targetsSkyStone.deactivate();

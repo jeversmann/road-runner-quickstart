@@ -6,14 +6,13 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.SampleTankDrive;
 
 /*
  * This is an example of a more complex path to really test the tuning.
  */
 @Autonomous(group = "drive")
-public class SplineTest extends LinearOpMode {
+public class UltimateGoalAutoA extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         SampleTankDrive drive = new SampleTankDrive(hardwareMap);
@@ -22,18 +21,14 @@ public class SplineTest extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        Trajectory traj = drive.trajectoryBuilder(new Pose2d())
-                .splineTo(new Vector2d(30, 30), 0)
+        // This is the pose of the robot centered on the left starting line against the wall
+        Pose2d startPose = new Pose2d(-63, -46, 0);
+        drive.setPoseEstimate(startPose);
+
+        Trajectory traj = drive.trajectoryBuilder(startPose)
+                .splineTo(new Vector2d(12-4, -58), 0)
                 .build();
 
         drive.followTrajectory(traj);
-
-        sleep(2000);
-
-        drive.followTrajectory(
-                drive.trajectoryBuilder(traj.end(), true)
-                        .splineTo(new Vector2d(0, 0), Math.toRadians(180))
-                        .build()
-        );
     }
 }

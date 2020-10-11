@@ -28,6 +28,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.util.DashboardUtil;
 import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
@@ -51,8 +52,8 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
  */
 @Config
 public class SampleTankDrive extends TankDrive {
-    public static PIDCoefficients AXIAL_PID = new PIDCoefficients(0, 0, 0);
-    public static PIDCoefficients CROSS_TRACK_PID = new PIDCoefficients(0, 0, 0);
+    public static PIDCoefficients AXIAL_PID = new PIDCoefficients(0.1, 0, 0);
+    public static PIDCoefficients CROSS_TRACK_PID = new PIDCoefficients(0.1, 0, 0);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(0, 0, 0);
 
 
@@ -115,14 +116,19 @@ public class SampleTankDrive extends TankDrive {
         // BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
 
         // add/remove motors depending on your robot (e.g., 6WD)
-        DcMotorEx leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
-        DcMotorEx leftRear = hardwareMap.get(DcMotorEx.class, "leftRear");
-        DcMotorEx rightRear = hardwareMap.get(DcMotorEx.class, "rightRear");
-        DcMotorEx rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
+        // DcMotorEx leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
+        // DcMotorEx leftRear = hardwareMap.get(DcMotorEx.class, "leftRear");
+        // DcMotorEx rightRear = hardwareMap.get(DcMotorEx.class, "rightRear");
+        // DcMotorEx rightFront = hardwareMap.get(DcMotorEx.class, "rightFront");
+        // motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
+        // leftMotors = Arrays.asList(leftFront, leftRear);
+        // rightMotors = Arrays.asList(rightFront, rightRear);
 
-        motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
-        leftMotors = Arrays.asList(leftFront, leftRear);
-        rightMotors = Arrays.asList(rightFront, rightRear);
+        DcMotorEx rightDrive = hardwareMap.get(DcMotorEx.class, "right_drive");
+        DcMotorEx leftDrive = hardwareMap.get(DcMotorEx.class, "left_drive");
+        motors = Arrays.asList(rightDrive, leftDrive);
+        leftMotors = Arrays.asList(leftDrive);
+        rightMotors = Arrays.asList(rightDrive);
 
         for (DcMotorEx motor : motors) {
             MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
@@ -141,6 +147,8 @@ public class SampleTankDrive extends TankDrive {
         }
 
         // TODO: reverse any motors using DcMotor.setDirection()
+        leftDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // TODO: if desired, use setLocalizer() to change the localization method
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
@@ -336,6 +344,7 @@ public class SampleTankDrive extends TankDrive {
 
     @Override
     public void setMotorPowers(double v, double v1) {
+        RobotLog.vv("Drive (L, R)", "(%.2f, %.2f)", v, v1);
         for (DcMotorEx leftMotor : leftMotors) {
             leftMotor.setPower(v);
         }
