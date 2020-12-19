@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.opmode;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,25 +9,26 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.drive.SampleTankDrive;
 
 /*
- * This is a simple routine to test translational drive capabilities.
+ * This is an example of a more complex path to really test the tuning.
  */
-@Config
 @Autonomous(group = "drive")
-public class StraightTest extends LinearOpMode {
-    public static double DISTANCE = 60; // in
-
+public class UltimateGoalAutoA extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         SampleTankDrive drive = new SampleTankDrive(hardwareMap);
-
-        Trajectory trajectory = drive.trajectoryBuilder(new Pose2d())
-                .forward(DISTANCE)
-                .build();
 
         waitForStart();
 
         if (isStopRequested()) return;
 
-        drive.followTrajectory(trajectory);
+        // This is the pose of the robot centered on the right starting line against the wall
+        Pose2d startPose = new Pose2d(-63, -48, 0);
+        drive.setPoseEstimate(startPose);
+
+        Trajectory traj = drive.trajectoryBuilder(startPose)
+                .splineTo(new Vector2d(12-4, -58), 0)
+                .build();
+
+        drive.followTrajectory(traj);
     }
 }
