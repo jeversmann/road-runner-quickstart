@@ -265,7 +265,6 @@ public class SampleTankDrive extends TankDrive {
 
                 fieldOverlay.setStroke("#3F51B5");
                 DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
-                DashboardUtil.drawRobot(fieldOverlay, currentPose);
 
                 if (!follower.isFollowing()) {
                     mode = Mode.IDLE;
@@ -276,6 +275,7 @@ public class SampleTankDrive extends TankDrive {
             }
         }
 
+        DashboardUtil.drawRobot(fieldOverlay, currentPose);
         dashboard.sendTelemetryPacket(packet);
     }
 

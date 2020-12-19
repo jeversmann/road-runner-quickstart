@@ -86,7 +86,6 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 
 
 @TeleOp(name="ULTIMATEGOAL Vuforia Nav Webcam", group ="Concept")
-@Disabled
 public class ConceptVuforiaUltimateGoalNavigationWebcam extends LinearOpMode {
 
     // IMPORTANT: If you are using a USB WebCam, you must select CAMERA_CHOICE = BACK; and PHONE_IS_PORTRAIT = false;
@@ -106,7 +105,7 @@ public class ConceptVuforiaUltimateGoalNavigationWebcam extends LinearOpMode {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY =
-            " --- YOUR NEW VUFORIA KEY GOES HERE  --- ";
+            "AWmtrWr/////AAABmVZAFYszH01gnzhV0SLCT5k/+B6hxjVviSu+QFVs/0lA1NemfppuOIIuRmxJsozHDqCvbpb/61ZlpyJ54CVBpeqc5EY8t7m0yB3jAOyJOenvzOLNua0P5Z6ZeeCRqDUkNtdwURLQfr8Mm9hKt/n0Qs0atdAMQOPS6u8KsWGhEcKWEa+8GZc3+brWyPSW0J7Qwd/7ALLk99x6k7R9JA5i9X3Ql8pPxv1G9SqNfC9qJi1dizq3UXfcKWGvegdkQy6x3QX/K1I9scMdzD8Hq1PmYq7y6rrLyozhxBOAXJQwORcIIKzicoTyE4sTv+WblZrvVZPPkHs/fAtOv3se5EMqYOfxDHfoUBJPVTAS5PR8XsYP";
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
@@ -245,9 +244,9 @@ public class ConceptVuforiaUltimateGoalNavigationWebcam extends LinearOpMode {
 
         // Next, translate the camera lens to where it is on the robot.
         // In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-        final float CAMERA_FORWARD_DISPLACEMENT  = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot-center
+        final float CAMERA_FORWARD_DISPLACEMENT  = 0.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot-center
         final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
+        final float CAMERA_LEFT_DISPLACEMENT     = -4.0f * mmPerInch;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
                     .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
