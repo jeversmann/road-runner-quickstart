@@ -26,9 +26,9 @@ public class PrototypeFlywheelCalibration extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.b) {
-            hardware.pusher.setPosition(hardware.PUSHER_FORWARD);
+            hardware.pusherForward();
         } else {
-            hardware.pusher.setPosition(hardware.PUSHER_BACK);
+            hardware.pusherBack();
         }
 
         if (gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_right) {

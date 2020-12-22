@@ -38,9 +38,9 @@ public class UltimateGoalAutoCloseRings extends LinearOpMode {
                 continue;
             }
 
-            hardware.pusher.setPosition(hardware.PUSHER_FORWARD);
+            hardware.pusherForward();
             sleep(hardware.PUSHER_DELAY);
-            hardware.pusher.setPosition(hardware.PUSHER_BACK);
+            hardware.pusherBack();
             sleep(hardware.PUSHER_DELAY);
             rings--;
         }
@@ -68,9 +68,9 @@ public class UltimateGoalAutoCloseRings extends LinearOpMode {
                 continue;
             }
 
-            hardware.pusher.setPosition(hardware.PUSHER_FORWARD);
+            hardware.pusherForward();
             sleep(hardware.PUSHER_DELAY);
-            hardware.pusher.setPosition(hardware.PUSHER_BACK);
+            hardware.pusherBack();
             sleep(hardware.PUSHER_DELAY);
             rings--;
         }

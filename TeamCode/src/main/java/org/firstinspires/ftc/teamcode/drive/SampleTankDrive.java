@@ -204,6 +204,11 @@ public class SampleTankDrive extends TankDrive {
     }
 
     public void update() {
+        TelemetryPacket packet = new TelemetryPacket();
+        update(packet);
+    }
+
+    public void update(TelemetryPacket packet) {
         updatePoseEstimate();
 
         Pose2d currentPose = getPoseEstimate();
@@ -211,7 +216,6 @@ public class SampleTankDrive extends TankDrive {
 
         poseHistory.add(currentPose);
 
-        TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
 
         packet.put("mode", mode);

@@ -17,6 +17,25 @@ public class PrototypeDiagnostics extends OpMode {
         hardware.rightDrive.setPower(gamepad1.dpad_right ? 1 : 0);
         hardware.flywheel.setPower(gamepad1.y ? 1 : 0);
         hardware.intake.setPower(gamepad1.x ? 1 : 0);
-        hardware.pusher.setPosition(gamepad1.b ? hardware.PUSHER_FORWARD : hardware.PUSHER_BACK);
+
+        if (gamepad1.b) {
+            hardware.pusherForward();
+        } else {
+            hardware.pusherBack();
+        }
+
+        if (gamepad1.dpad_up) {
+            hardware.armUp();
+        } else if (gamepad1.dpad_down) {
+            hardware.armDown();
+        } else {
+            hardware.armStop();
+        }
+
+        if (gamepad1.a) {
+            hardware.closeClaw();
+        } else {
+            hardware.openClaw();
+        }
     }
 }

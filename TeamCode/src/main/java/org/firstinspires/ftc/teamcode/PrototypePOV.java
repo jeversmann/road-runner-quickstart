@@ -13,7 +13,7 @@ public class PrototypePOV extends OpMode {
         hardware = new PrototypeHardware(hardwareMap, true);
     }
 
-    boolean dPadWasPressed = false;
+    boolean xWasPressed = false;
     boolean flywheelOn = false;
 
     @Override
@@ -28,11 +28,11 @@ public class PrototypePOV extends OpMode {
 
         hardware.intake.setPower(gamepad1.y ? 1 : 0);
 
-        if (dPadWasPressed) {
-            dPadWasPressed = !gamepad1.dpad_up;
+        if (xWasPressed) {
+            xWasPressed = !gamepad1.x;
         } else {
-            if (gamepad1.dpad_up) {
-                dPadWasPressed = true;
+            if (gamepad1.x) {
+                xWasPressed = true;
                 flywheelOn = !flywheelOn;
             }
         }
@@ -41,6 +41,24 @@ public class PrototypePOV extends OpMode {
         hardware.flywheel.setVelocity(targetVelociy);
 
 
-        hardware.pusher.setPosition(gamepad1.b ? hardware.PUSHER_FORWARD : hardware.PUSHER_BACK);
+        if (gamepad1.b) {
+            hardware.pusherForward();
+        } else {
+            hardware.pusherBack();
+        }
+
+        if (gamepad1.dpad_up) {
+            hardware.armUp();
+        } else if (gamepad1.dpad_down) {
+            hardware.armDown();
+        } else {
+            hardware.armStop();
+        }
+
+        if (gamepad1.dpad_right) {
+            hardware.closeClaw();
+        } else if (gamepad1.dpad_left) {
+            hardware.openClaw();
+        }
     }
 }
