@@ -145,9 +145,7 @@ public class SampleTankDrive extends TankDrive {
             setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
 
-
-        // TODO: if desired, use setLocalizer() to change the localization method
-        // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
+        setLocalizer(new PrototypeLocalizer(hardwareMap));
     }
 
     public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
@@ -262,7 +260,7 @@ public class SampleTankDrive extends TankDrive {
                 Trajectory trajectory = follower.getTrajectory();
 
                 fieldOverlay.setStrokeWidth(1);
-                fieldOverlay.setStroke("4CAF50");
+                fieldOverlay.setStroke("#4CAF50");
                 DashboardUtil.drawSampledPath(fieldOverlay, trajectory.getPath());
                 double t = follower.elapsedTime();
                 DashboardUtil.drawRobot(fieldOverlay, trajectory.get(t));
@@ -279,6 +277,7 @@ public class SampleTankDrive extends TankDrive {
             }
         }
 
+        fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawRobot(fieldOverlay, currentPose);
         dashboard.sendTelemetryPacket(packet);
     }

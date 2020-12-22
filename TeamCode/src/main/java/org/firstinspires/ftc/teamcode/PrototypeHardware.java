@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 
 public class PrototypeHardware {
     public DcMotorEx leftDrive, rightDrive, flywheel, intake;
-    public Servo pusher, armOne, armTwo, claw;
+    private Servo pusher, armOne, armTwo, claw;
 
     public int PUSHER_DELAY = 600;
     public int FLYWHEEL_LAUNCH_LINE_VELOCITY = 1500;
@@ -39,7 +39,6 @@ public class PrototypeHardware {
         flywheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         intake = hardwareMap.get(DcMotorEx.class, "intake");
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
@@ -94,6 +93,18 @@ public class PrototypeHardware {
         armOne.setPosition(ARM_DOWN);
         armTwo.setPosition(ARM_DOWN);
 
+    }
+
+    public void intakeOn() {
+        intake.setPower(-1);
+    }
+
+    public void intakeOff() {
+        intake.setPower(0);
+    }
+
+    public void intakeReverse() {
+        intake.setPower(1);
     }
 
 }

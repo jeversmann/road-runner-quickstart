@@ -20,6 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.teamcode.drive.PrototypeLocalizer;
 import org.firstinspires.ftc.teamcode.drive.SampleTankDrive;
 import org.firstinspires.ftc.teamcode.util.DashboardUtil;
 
@@ -171,6 +172,7 @@ public class PrototypeAutoAim extends OpMode {
         }
 
         TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
 
         if (autoAiming) {
             hardware.flywheel.setVelocity(hardware.FLYWHEEL_LAUNCH_LINE_VELOCITY);
@@ -204,10 +206,8 @@ public class PrototypeAutoAim extends OpMode {
                         translation.get(1) / mmPerInch,
                         Math.toRadians(rotation.thirdAngle - 90)
                 );
-
-                Canvas fieldOverlay = packet.fieldOverlay();
                 fieldOverlay.setStrokeWidth(1);
-                fieldOverlay.setStroke("FFFF00");
+                fieldOverlay.setStroke("#FFFF00");
                 DashboardUtil.drawRobot(fieldOverlay, cameraPositionEstimate);
 
                 Pose2d currentEstimate = drive.getPoseEstimate();
@@ -226,7 +226,11 @@ public class PrototypeAutoAim extends OpMode {
             telemetry.addLine(String.format("%.2f : %.2f", control.component1(), control.component3()));
         }
 
-        hardware.intake.setPower(gamepad1.y ? 1 : 0);
+        if (gamepad1.y) {
+            hardware.intakeOn();
+        } else {
+            hardware.intakeOff();
+        }
 
         telemetry.update();
         drive.update(packet);
