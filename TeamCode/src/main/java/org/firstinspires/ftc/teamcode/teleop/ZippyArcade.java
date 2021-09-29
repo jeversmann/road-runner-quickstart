@@ -24,6 +24,7 @@ public class ZippyArcade extends OpMode {
 
     @Override
     public void loop() {
+        // DRIVETRAIN
         drive.setWeightedDrivePower(
                 new Pose2d(
                         -SquareCurve.from(gamepad1.left_stick_y),
@@ -31,20 +32,35 @@ public class ZippyArcade extends OpMode {
                         -SquareCurve.from(gamepad1.right_stick_x)
                 )
         );
-
         drive.update();
 
+        // ARM
+        int stick = (int) Math.round(-SquareCurve.from(gamepad1.right_stick_y) * 50);
         if (gamepad1.left_trigger > .5) {
-            arm.down();
-        } else if (gamepad1.dpad_up) {
-            arm.top();
-        } else if (gamepad1.dpad_right) {
-            arm.middle();
-        } else if (gamepad1.dpad_down) {
-            arm.low();
+            arm.adjustTarget(-100);
         } else if (gamepad1.left_bumper) {
-            arm.flip();
+            arm.setTarget(650);
+        } else {
+            arm.adjustTarget(stick);
+        }
+        telemetry.addLine("Arm T:" + arm.getArmTarget() + " P:" + arm.getArmTicks());
+
+        // CLAW
+        if (gamepad1.right_bumper) {
+            arm.clawOpen();
+        } else if (gamepad1.right_trigger > .5) {
+            arm.clawClose();
+        } else {
+            arm.clawStop();
+        }
+
+        // CAROUSEL
+        if (gamepad1.x) {
+            arm.setCarousel(1);
+        } else if (gamepad1.b) {
+            arm.setCarousel(-1);
+        } else {
+            arm.setCarousel(0);
         }
     }
-
 }

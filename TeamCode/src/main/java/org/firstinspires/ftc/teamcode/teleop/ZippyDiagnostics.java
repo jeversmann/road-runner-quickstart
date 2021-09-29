@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @TeleOp(group = "drive")
 public class ZippyDiagnostics extends OpMode {
 
-    private DcMotorEx arm, carousel;
+    private DcMotorEx arm, carousel, claw;
 
     private DcMotorEx back_left_drive;
     private DcMotorEx back_right_drive;
@@ -25,9 +25,11 @@ public class ZippyDiagnostics extends OpMode {
 
         arm = hardwareMap.get(DcMotorEx.class, "arm");
         carousel = hardwareMap.get(DcMotorEx.class, "carousel");
+        claw = hardwareMap.get(DcMotorEx.class, "claw");
 
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         carousel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        claw.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         front_right_drive.setDirection(DcMotorSimple.Direction.REVERSE);
         back_right_drive.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -37,6 +39,7 @@ public class ZippyDiagnostics extends OpMode {
     public void loop() {
         arm.setPower(gamepad1.y ? .5 : 0);
         carousel.setPower(gamepad1.b ? .5 : 0);
+        claw.setPower(gamepad1.x ? .5 : 0);
 
         setDriveMotorPowers(
                 gamepad1.dpad_up ? .5 : 0,

@@ -7,48 +7,74 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import java.nio.channels.FileLockInterruptionException;
 
 public class ZippyArm {
-    public static final int ARM_FLIPPED = 1100;
-    public static final int ARM_TOP = 500;
-    public static final int ARM_MIDDLE = 350;
-    public static final int ARM_LOW = 200;
-    public static final int ARM_DOWN = 0;
+    private DcMotorEx arm, carousel, claw;
 
-    private DcMotorEx arm, carousel;
+    private static final int LOWER_BOUND = 0;
+    private static final int UPPER_BOUND = 3500;
+
+    private int armTarget;
 
     public ZippyArm(HardwareMap hardwareMap) {
         arm = hardwareMap.get(DcMotorEx.class, "arm");
         carousel = hardwareMap.get(DcMotorEx.class, "carousel");
+        claw = hardwareMap.get(DcMotorEx.class, "claw");
 
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         carousel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        claw.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         carousel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        claw.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    private void set(int pos) {
-        arm.setTargetPosition(pos);
+    public int getArmTarget() {
+        return armTarget;
+    }
+
+    public int getArmTicks() {
+        return arm.getCurrentPosition();
+    }
+
+    private int applyBounds(int target) {
+        if (target < LOWER_BOUND) {
+            return LOWER_BOUND;
+        } else if (target > UPPER_BOUND) {
+            return UPPER_BOUND;
+        } else {
+            return target;
+        }
+    }
+
+    public void setTarget(int pos) {
+        armTarget = applyBounds(pos);
+
+        arm.setTargetPosition(armTarget);
         arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        arm.setPower(.5);
+        arm.setPower(1);
     }
 
-    public void down() {
-        set(ARM_DOWN);
+    public void adjustTarget(int ticks) {
+        armTarget = applyBounds(armTarget + ticks);
+
+        arm.setTargetPosition(armTarget);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(.8);
     }
 
-    public void low() {
-        set(ARM_LOW);
+    public void clawClose() {
+        claw.setPower(1);
     }
 
-    public void middle() {
-        set(ARM_MIDDLE);
+    public void clawOpen() {
+        claw.setPower(-.5);
     }
 
-    public void top() {
-        set(ARM_TOP);
+    public void clawStop() {
+        claw.setPower(0);
     }
 
-    public void flip() {
-        set(ARM_FLIPPED);
+    public void setCarousel(double power) {
+        carousel.setPower(power);
     }
 }
