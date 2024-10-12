@@ -21,7 +21,7 @@ public class LocalizationTest extends LinearOpMode {
         SparkFunOTOS otos = hardwareMap.get(SparkFunOTOS.class, "otos");
 
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
-            MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+            MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(36, -36, 0));
             drive.configureOtos(otos, telemetry);
 
             waitForStart();
@@ -37,6 +37,7 @@ public class LocalizationTest extends LinearOpMode {
 
                 drive.updatePoseEstimate();
                 SparkFunOTOS.Pose2D pos = otos.getPosition();
+                Pose2d otosPose = new Pose2d(new Vector2d(pos.x, pos.y), pos.h);
 
                 telemetry.addData("x", drive.pose.position.x);
                 telemetry.addData("y", drive.pose.position.y);
@@ -47,11 +48,13 @@ public class LocalizationTest extends LinearOpMode {
                 telemetry.addData("Heading angle", pos.h);
                 telemetry.update();
 
-
-
                 TelemetryPacket packet = new TelemetryPacket();
                 packet.fieldOverlay().setStroke("#3F51B5");
                 Drawing.drawRobot(packet.fieldOverlay(), drive.pose);
+
+                packet.fieldOverlay().setStroke("#3FB551");
+                Drawing.drawRobot(packet.fieldOverlay(), otosPose);
+
                 FtcDashboard.getInstance().sendTelemetryPacket(packet);
             }
         } else if (TuningOpModes.DRIVE_CLASS.equals(TankDrive.class)) {

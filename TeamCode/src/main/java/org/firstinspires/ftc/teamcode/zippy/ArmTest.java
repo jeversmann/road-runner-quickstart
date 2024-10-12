@@ -17,22 +17,33 @@ public class ArmTest extends LinearOpMode {
 
         // Loop until the OpMode ends
         while (opModeIsActive()) {
-            if (gamepad1.left_trigger > .5) {
-                arm.manualControl((double) gamepad1.left_stick_x, (double) gamepad1.left_stick_y, null, null);
-            } else if (gamepad1.a) {
+            if (gamepad1.right_trigger > 0.5) {
+                arm.intake();
+            } else if (gamepad1.left_trigger > 0.5) {
+                arm.outtake();
+            } else {
+                arm.hold();
+            }
+
+            if (gamepad1.a) {
                 arm.setPose(Arm.Pose.Zero);
             } else if (gamepad1.b) {
-                arm.open();
+                arm.setPose(Arm.Pose.Submersible);
             } else if (gamepad1.x) {
-                arm.close();
+                arm.setPose(Arm.Pose.Intake);
             } else if (gamepad1.y) {
+                arm.setPose(Arm.Pose.WallIntake);
+            } else if (gamepad1.dpad_down) {
                 arm.setPose(Arm.Pose.LowBasket);
             } else if (gamepad1.dpad_up) {
+                arm.setPose(Arm.Pose.HighBasket);
+            } else if (gamepad1.dpad_left) {
+                arm.setPose(Arm.Pose.LowChamber);
+            } else if (gamepad1.dpad_right) {
                 arm.setPose(Arm.Pose.HighChamber);
-                arm.hold();
-            } else if (gamepad1.dpad_down) {
-                arm.setPose(Arm.Pose.WallIntake);
             }
+
+            arm.adjustPosition(gamepad1.right_stick_y);
 
             telemetry.addData("Elbow Position", arm.getElbowTicks());
             telemetry.addData("Shoulder Position", arm.getShoulderTicks());

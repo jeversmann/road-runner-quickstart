@@ -8,26 +8,34 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
+import java.util.Vector;
+
 @TeleOp(name = "DriveV1")
 public class DriveV1 extends OpMode {
     private Arm arm;
     private MecanumDrive drive;
+    private boolean clawClosed;
+    private boolean clawDebounce;
 
     @Override
     public void init() {
         drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
         arm = new Arm(hardwareMap);
+
+        clawDebounce = false;
+        clawClosed = false;
+        arm.open();
     }
 
     @Override
     public void loop() {
-        drive.setDrivePowers(new PoseVelocity2d(
-                new Vector2d(
-                        -gamepad1.left_stick_y,
-                        -gamepad1.left_stick_x
-                ),
-                -gamepad1.right_stick_x
-        ));
+        double heading = drive.pose.heading.toDouble();
+        Vector2d controllerVector = new Vector2d(-gamepad1.left_stick_y, -gamepad1.left_stick_x);
+        double fieldX = controllerVector.dot(new Vector2d(Math.cos(heading), Math.sin(heading)));
+        double fieldY = controllerVector.dot(new Vector2d(-Math.sin(heading), Math.cos(heading)));
+        Vector2d fieldVector = new Vector2d(fieldX, fieldY);
+
+        drive.setDrivePowers(new PoseVelocity2d(fieldVector, -gamepad1.right_stick_x));
 
         drive.updatePoseEstimate();
 
@@ -40,9 +48,17 @@ public class DriveV1 extends OpMode {
         }
 
         if (gamepad1.right_bumper) {
-            arm.close();
-        } else if (gamepad1.left_bumper) {
-            arm.open();
+            if (!clawDebounce) {
+                if (clawClosed) {
+                    arm.open();
+                } else {
+                    arm.close();
+                }
+                clawClosed = !clawClosed;
+            }
+            clawDebounce = true;
+        } else {
+            clawDebounce = false;
         }
 
         if (gamepad1.a) {
@@ -62,5 +78,12 @@ public class DriveV1 extends OpMode {
         } else if (gamepad1.dpad_right) {
             arm.setPose(Arm.Pose.HighChamber);
         }
+
+        arm.adjustPosition(gamepad1.right_stick_y);
+
+        telemetry.addData("Elbow Position", arm.getElbowTicks());
+        telemetry.addData("Shoulder Position", arm.getShoulderTicks());
+
+        telemetry.update();
     }
 }

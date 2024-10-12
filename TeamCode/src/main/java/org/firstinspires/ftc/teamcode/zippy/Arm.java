@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import java.util.Arrays;
+
 public class Arm {
     public enum Pose {
         Zero,
@@ -22,17 +24,17 @@ public class Arm {
     private int shoulderTicks(Pose pose) {
         switch (pose) {
             case LowChamber:
-                return -1100;
+                return -1300;
             case LowRung:
                 return -2100;
             case HighChamber:
-                return -2100;
+                return -2250;
             case LowBasket:
                 return -1400;
             case HighBasket:
                 return -3000;
             case WallIntake:
-                return -1000;
+                return -1070;
             case Intake:
             // Submersible is the same as intake so we don't have to move up through the barrier
             case Submersible:
@@ -131,6 +133,19 @@ public class Arm {
 
         shoulder.setPower(.8);
         elbow.setPower(.8);
+
+        currentPose = pose;
+    }
+
+    private Pose[] ADJUST_SHOULDER = new Pose[]{Pose.Zero, Pose.WallIntake, Pose.HighChamber, Pose.LowChamber, Pose.LowRung};
+    private Pose[] ADJUST_ELBOW = new Pose[]{Pose.Intake, Pose.Submersible, Pose.HighBasket, Pose.LowBasket};
+
+    public void adjustPosition(double direction) {
+        if (Arrays.stream(ADJUST_SHOULDER).anyMatch(pose -> pose == currentPose)) {
+            shoulder.setTargetPosition(shoulder.getTargetPosition() + (int) (direction * 10));
+        } else if (Arrays.stream(ADJUST_ELBOW).anyMatch(pose -> pose == currentPose)) {
+            elbow.setTargetPosition(elbow.getTargetPosition() + (int) (direction * 3));
+        }
     }
 
     public void intake() {
@@ -148,6 +163,7 @@ public class Arm {
     public void open() {
         claw.setPosition(1);
     }
+
     public void close() {
         claw.setPosition(.5);
     }
