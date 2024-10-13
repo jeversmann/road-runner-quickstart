@@ -61,9 +61,9 @@ public final class MecanumDrive {
         // TODO: fill in these values based on
         //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
         public RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
-                RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD;
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
         public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
-                RevHubOrientationOnRobot.UsbFacingDirection.LEFT;
+                RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
 
         // drive model parameters
         public double inPerTick = 1;
@@ -71,9 +71,9 @@ public final class MecanumDrive {
         public double trackWidthTicks = 0;
 
         // feedforward parameters (in tick units)
-        public double kS = 0;
-        public double kV = 0;
-        public double kA = 0;
+        public double kS = 0.1;
+        public double kV = 0.1;
+        public double kA = 0.00001;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 50;
@@ -115,8 +115,10 @@ public final class MecanumDrive {
 
     public final LazyImu lazyImu;
 
-    public final Localizer localizer;
+    public final SparkFunOTOS otos;
+
     public Pose2d pose;
+    private Pose2d lastOtosPose = pose;
 
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
 
@@ -124,90 +126,6 @@ public final class MecanumDrive {
     private final DownsampledWriter targetPoseWriter = new DownsampledWriter("TARGET_POSE", 50_000_000);
     private final DownsampledWriter driveCommandWriter = new DownsampledWriter("DRIVE_COMMAND", 50_000_000);
     private final DownsampledWriter mecanumCommandWriter = new DownsampledWriter("MECANUM_COMMAND", 50_000_000);
-
-    public class DriveLocalizer implements Localizer {
-        public final Encoder leftFront, leftBack, rightBack, rightFront;
-        public final IMU imu;
-
-        private int lastLeftFrontPos, lastLeftBackPos, lastRightBackPos, lastRightFrontPos;
-        private Rotation2d lastHeading;
-        private boolean initialized;
-
-        public DriveLocalizer() {
-            leftFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftFront));
-            leftBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftBack));
-            rightBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightBack));
-            rightFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.rightFront));
-
-            imu = lazyImu.get();
-
-            // TODO: reverse encoders if needed
-            //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        }
-
-        @Override
-        public Twist2dDual<Time> update() {
-            PositionVelocityPair leftFrontPosVel = leftFront.getPositionAndVelocity();
-            PositionVelocityPair leftBackPosVel = leftBack.getPositionAndVelocity();
-            PositionVelocityPair rightBackPosVel = rightBack.getPositionAndVelocity();
-            PositionVelocityPair rightFrontPosVel = rightFront.getPositionAndVelocity();
-
-            YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-
-            FlightRecorder.write("MECANUM_LOCALIZER_INPUTS", new MecanumLocalizerInputsMessage(
-                    leftFrontPosVel, leftBackPosVel, rightBackPosVel, rightFrontPosVel, angles));
-
-            Rotation2d heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS));
-
-            if (!initialized) {
-                initialized = true;
-
-                lastLeftFrontPos = leftFrontPosVel.position;
-                lastLeftBackPos = leftBackPosVel.position;
-                lastRightBackPos = rightBackPosVel.position;
-                lastRightFrontPos = rightFrontPosVel.position;
-
-                lastHeading = heading;
-
-                return new Twist2dDual<>(
-                        Vector2dDual.constant(new Vector2d(0.0, 0.0), 2),
-                        DualNum.constant(0.0, 2)
-                );
-            }
-
-            double headingDelta = heading.minus(lastHeading);
-            Twist2dDual<Time> twist = kinematics.forward(new MecanumKinematics.WheelIncrements<>(
-                    new DualNum<Time>(new double[]{
-                            (leftFrontPosVel.position - lastLeftFrontPos),
-                            leftFrontPosVel.velocity,
-                    }).times(PARAMS.inPerTick),
-                    new DualNum<Time>(new double[]{
-                            (leftBackPosVel.position - lastLeftBackPos),
-                            leftBackPosVel.velocity,
-                    }).times(PARAMS.inPerTick),
-                    new DualNum<Time>(new double[]{
-                            (rightBackPosVel.position - lastRightBackPos),
-                            rightBackPosVel.velocity,
-                    }).times(PARAMS.inPerTick),
-                    new DualNum<Time>(new double[]{
-                            (rightFrontPosVel.position - lastRightFrontPos),
-                            rightFrontPosVel.velocity,
-                    }).times(PARAMS.inPerTick)
-            ));
-
-            lastLeftFrontPos = leftFrontPosVel.position;
-            lastLeftBackPos = leftBackPosVel.position;
-            lastRightBackPos = rightBackPosVel.position;
-            lastRightFrontPos = rightFrontPosVel.position;
-
-            lastHeading = heading;
-
-            return new Twist2dDual<>(
-                    twist.line,
-                    DualNum.cons(headingDelta, twist.angle.drop(1))
-            );
-        }
-    }
 
     public MecanumDrive(HardwareMap hardwareMap, Pose2d pose) {
         this.pose = pose;
@@ -239,16 +157,18 @@ public final class MecanumDrive {
         lazyImu = new LazyImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
                 PARAMS.logoFacingDirection, PARAMS.usbFacingDirection));
 
-        voltageSensor = hardwareMap.voltageSensor.iterator().next();
+        otos = hardwareMap.get(SparkFunOTOS.class, "otos");
 
-        localizer = new DriveLocalizer();
+        voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }
 
     public void configureOtos(SparkFunOTOS myOtos, Telemetry telemetry) {
+        if (telemetry != null) {
             telemetry.addLine("Configuring OTOS...");
             telemetry.update();
+        }
 
             // Set the desired units for linear and angular measurements. Can be either
             // meters or inches for linear, and radians or degrees for angular. If not
@@ -321,11 +241,13 @@ public final class MecanumDrive {
             SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
             myOtos.getVersionInfo(hwVersion, fwVersion);
 
-            telemetry.addLine("OTOS configured! Press start to get position data!");
-            telemetry.addLine();
-            telemetry.addLine(String.format("OTOS Hardware Version: v%d.%d", hwVersion.major, hwVersion.minor));
-            telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
-            telemetry.update();
+            if (telemetry != null) {
+                telemetry.addLine("OTOS configured! Press start to get position data!");
+                telemetry.addLine();
+                telemetry.addLine(String.format("OTOS Hardware Version: v%d.%d", hwVersion.major, hwVersion.minor));
+                telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
+                telemetry.update();
+            }
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {
@@ -527,9 +449,32 @@ public final class MecanumDrive {
     }
 
     public PoseVelocity2d updatePoseEstimate() {
-        Twist2dDual<Time> twist = localizer.update();
-        pose = pose.plus(twist.value());
+        if (lastOtosPose != pose) {
+            // RR localizer note:
+            // Something else is modifying our pose (likely for relocalization),
+            // so we override otos pose with the new pose.
+            // This could potentially cause up to 1 loop worth of drift.
+            // I don't like this solution at all, but it preserves compatibility.
+            // The only alternative is to add getter and setters, but that breaks compat.
+            // Potential alternate solution: timestamp the pose set and backtrack it based on speed?
+            otos.setPosition(new SparkFunOTOS.Pose2D(pose.position.x, pose.position.y, pose.heading.toDouble()));
+        }
+        // RR localizer note:
+        // The values are passed by reference, so we create variables first,
+        // then pass them into the function, then read from them.
 
+        // Reading acceleration worsens loop times by 1ms,
+        // but not reading it would need a custom driver and would break compatibility.
+        // The same is true for speed: we could calculate speed ourselves from pose and time,
+        // but it would be hard, less accurate, and would only save 1ms of loop time.
+        SparkFunOTOS.Pose2D otosPose = new SparkFunOTOS.Pose2D();
+        SparkFunOTOS.Pose2D otosVel = new SparkFunOTOS.Pose2D();
+        SparkFunOTOS.Pose2D otosAcc = new SparkFunOTOS.Pose2D();
+        otos.getPosVelAcc(otosPose,otosVel,otosAcc);
+        pose = new Pose2d(otosPose.x, otosPose.y, otosPose.h);
+        lastOtosPose = pose;
+
+        // RR standard
         poseHistory.add(pose);
         while (poseHistory.size() > 100) {
             poseHistory.removeFirst();
@@ -537,7 +482,9 @@ public final class MecanumDrive {
 
         estimatedPoseWriter.write(new PoseMessage(pose));
 
-        return twist.velocity().value();
+        // RR localizer note:
+        // OTOS velocity units happen to be identical to Roadrunners, so we don't need any conversion!
+        return new PoseVelocity2d(new Vector2d(otosVel.x, otosVel.y),otosVel.h);
     }
 
     private void drawPoseHistory(Canvas c) {

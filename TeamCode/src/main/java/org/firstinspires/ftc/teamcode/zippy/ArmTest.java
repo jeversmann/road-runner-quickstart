@@ -18,11 +18,15 @@ public class ArmTest extends LinearOpMode {
         // Loop until the OpMode ends
         while (opModeIsActive()) {
             if (gamepad1.right_trigger > 0.5) {
-                arm.intake();
-            } else if (gamepad1.left_trigger > 0.5) {
-                arm.outtake();
+                arm.open();
             } else {
-                arm.hold();
+                arm.close();
+            }
+
+            if (gamepad1.left_trigger > 0.5) {
+                arm.wristDown();
+            } else {
+                arm.wristUp();
             }
 
             if (gamepad1.a) {
@@ -45,7 +49,6 @@ public class ArmTest extends LinearOpMode {
 
             arm.adjustPosition(gamepad1.right_stick_y);
 
-            telemetry.addData("Elbow Position", arm.getElbowTicks());
             telemetry.addData("Shoulder Position", arm.getShoulderTicks());
 
             telemetry.update();

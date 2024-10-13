@@ -18,11 +18,10 @@ public class LocalizationTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        SparkFunOTOS otos = hardwareMap.get(SparkFunOTOS.class, "otos");
 
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
             MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(36, -36, 0));
-            drive.configureOtos(otos, telemetry);
+            drive.configureOtos(drive.otos, telemetry);
 
             waitForStart();
 
@@ -36,24 +35,15 @@ public class LocalizationTest extends LinearOpMode {
                 ));
 
                 drive.updatePoseEstimate();
-                SparkFunOTOS.Pose2D pos = otos.getPosition();
-                Pose2d otosPose = new Pose2d(new Vector2d(pos.x, pos.y), pos.h);
 
                 telemetry.addData("x", drive.pose.position.x);
                 telemetry.addData("y", drive.pose.position.y);
                 telemetry.addData("heading (deg)", Math.toDegrees(drive.pose.heading.toDouble()));
-                telemetry.addData("---- Sparkfun ----", "");
-                telemetry.addData("X coordinate", pos.x);
-                telemetry.addData("Y coordinate", pos.y);
-                telemetry.addData("Heading angle", pos.h);
                 telemetry.update();
 
                 TelemetryPacket packet = new TelemetryPacket();
                 packet.fieldOverlay().setStroke("#3F51B5");
                 Drawing.drawRobot(packet.fieldOverlay(), drive.pose);
-
-                packet.fieldOverlay().setStroke("#3FB551");
-                Drawing.drawRobot(packet.fieldOverlay(), otosPose);
 
                 FtcDashboard.getInstance().sendTelemetryPacket(packet);
             }

@@ -24,140 +24,88 @@ public class Arm {
     private int shoulderTicks(Pose pose) {
         switch (pose) {
             case LowChamber:
-                return -1300;
+                return -1850;
             case LowRung:
-                return -2100;
+                return 0;
             case HighChamber:
-                return -2250;
+                return -1250;
             case LowBasket:
-                return -1400;
+                return 0;
             case HighBasket:
-                return -3000;
+                return 0;
             case WallIntake:
-                return -1070;
+                return 0;
             case Intake:
-            // Submersible is the same as intake so we don't have to move up through the barrier
+                return -2300;
             case Submersible:
-                return -550;
+                return -2100;
             case Zero:
             default:
                 return 0;
         }
     }
 
-    private int elbowTicks(Pose pose) {
-        switch (pose ){
-            case Submersible:
-                return 300;
-            case LowBasket:
-                return 180;
-            case HighBasket:
-                return 500;
-            case Intake:
-                return 450;
-            case WallIntake:
-            case LowChamber:
-            case LowRung:
-            case HighChamber:
-            case Zero:
-            default:
-                return 0;
-        }
-    }
+    private static int UP = -1000;
 
     private DcMotorEx shoulder;
-    private DcMotorEx elbow;
-    private Servo intake;
+    private Servo wrist;
     private Servo claw;
 
     private Pose currentPose;
 
     public Arm(HardwareMap hardwareMap) {
         shoulder = hardwareMap.get(DcMotorEx.class, "shoulder");
-        elbow = hardwareMap.get(DcMotorEx.class, "elbow");
-        intake = hardwareMap.get(Servo.class, "intake");
+        wrist = hardwareMap.get(Servo.class, "wrist");
         claw = hardwareMap.get(Servo.class, "claw");
 
+        wristUp();
+        close();
+
         shoulder.setDirection(DcMotorSimple.Direction.REVERSE);
-
         shoulder.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setPose(Pose.Zero);
     }
 
     public void zeroEncoders() {
         shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         currentPose = Pose.Zero;
-        shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-
-    public void manualControl(Double shoulderPower, Double elbowPower, Double intakePower, Double clawPosition) {
-        if(shoulderPower != null) {
-            shoulder.setPower(shoulderPower);
-        }
-        if(elbowPower != null) {
-            elbow.setPower(elbowPower);
-        }
-        if(intakePower != null) {
-            intake.setPosition(intakePower);
-        }
-        if (clawPosition != null) {
-            claw.setPosition(clawPosition);
-        }
+        shoulder.setTargetPosition(0);
+        shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public int getShoulderTicks() {
         return shoulder.getCurrentPosition();
     }
 
-    public int getElbowTicks() {
-        return elbow.getCurrentPosition();
-    }
-
     public void setPose(Pose pose) {
         int shoulderTicks = shoulderTicks(pose);
-        int elbowTicks = elbowTicks(pose);
 
         shoulder.setPower(0);
-        elbow.setPower(0);
 
         shoulder.setTargetPosition(shoulderTicks);
-        elbow.setTargetPosition(elbowTicks);
 
         shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         shoulder.setPower(.8);
-        elbow.setPower(.8);
 
         currentPose = pose;
-    }
 
-    private Pose[] ADJUST_SHOULDER = new Pose[]{Pose.Zero, Pose.WallIntake, Pose.HighChamber, Pose.LowChamber, Pose.LowRung};
-    private Pose[] ADJUST_ELBOW = new Pose[]{Pose.Intake, Pose.Submersible, Pose.HighBasket, Pose.LowBasket};
-
-    public void adjustPosition(double direction) {
-        if (Arrays.stream(ADJUST_SHOULDER).anyMatch(pose -> pose == currentPose)) {
-            shoulder.setTargetPosition(shoulder.getTargetPosition() + (int) (direction * 10));
-        } else if (Arrays.stream(ADJUST_ELBOW).anyMatch(pose -> pose == currentPose)) {
-            elbow.setTargetPosition(elbow.getTargetPosition() + (int) (direction * 3));
+        if (pose == Pose.HighChamber || pose == Pose.LowChamber) {
+            wristDown();
+        } else {
+            wristUp();
         }
     }
 
-    public void intake() {
-        intake.setPosition(1);
-    }
-
-    public void hold() {
-        intake.setPosition(.5);
-    }
-
-    public void outtake() {
-        intake.setPosition(-1);
+    public void adjustPosition(double direction) {
+        int target = shoulder.getTargetPosition();
+        int current = shoulder.getCurrentPosition();
+        if (current < UP) {
+            direction *= -1;
+        }
+        int adjustment = (int) (direction * 10);
+        shoulder.setTargetPosition(target + adjustment);
     }
 
     public void open() {
@@ -165,6 +113,18 @@ public class Arm {
     }
 
     public void close() {
-        claw.setPosition(.5);
+        claw.setPosition(0);
+    }
+
+    public void outtake() {
+        shoulder.setTargetPosition(shoulder.getTargetPosition() - 100);
+    }
+
+    public void wristUp() {
+        wrist.setPosition(1);
+    }
+
+    public void wristDown() {
+        wrist.setPosition(0);
     }
 }
