@@ -1,24 +1,22 @@
 package org.firstinspires.ftc.teamcode.zippy;
 
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
-@TeleOp(name = "DriveV2")
-public class DriveV2 extends OpMode {
+@TeleOp(name = "DriveV3")
+public class DriveV3 extends OpMode {
     private Arm arm;
-    private MecanumDrive drive;
+    private SampleMecanumDrive drive;
     private boolean clawClosed;
     private boolean clawDebounce;
     private boolean outtakeDebounce;
 
     @Override
     public void init() {
-        drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, Math.toRadians(180)));
+        drive = new SampleMecanumDrive(hardwareMap);
         arm = new Arm(hardwareMap);
 
         clawDebounce = false;
@@ -28,16 +26,31 @@ public class DriveV2 extends OpMode {
     }
 
     @Override
+    public void init_loop(){
+        drive.update();
+    }
+
+    @Override
     public void loop() {
-        double heading = drive.pose.heading.toDouble();
-        Vector2d controllerVector = new Vector2d(-gamepad1.left_stick_y, -gamepad1.left_stick_x);
-        double fieldX = controllerVector.dot(new Vector2d(Math.cos(heading), Math.sin(heading)));
-        double fieldY = controllerVector.dot(new Vector2d(-Math.sin(heading), Math.cos(heading)));
-        Vector2d fieldVector = new Vector2d(fieldX, fieldY);
+        double heading = drive.getPoseEstimate().getHeading();
+        double fieldX = -gamepad1.left_stick_y * Math.cos(heading) + -gamepad1.left_stick_x * Math.sin(heading);
+        double fieldY = -gamepad1.left_stick_y * -Math.sin(heading) + -gamepad1.left_stick_x * Math.cos(heading);
 
-        drive.setDrivePowers(new PoseVelocity2d(fieldVector, -gamepad1.right_stick_x));
+        drive.setWeightedDrivePower(
+                new Pose2d(
+                        fieldX,
+                        fieldY,
+                        -gamepad1.right_stick_x
+                )
+        );
 
-        drive.updatePoseEstimate();
+        drive.update();
+
+        Pose2d poseEstimate = drive.getPoseEstimate();
+        telemetry.addData("x", poseEstimate.getX());
+        telemetry.addData("y", poseEstimate.getY());
+        telemetry.addData("heading", poseEstimate.getHeading());
+        telemetry.update();
 
         if (gamepad1.right_bumper) {
             if (!clawDebounce) {
