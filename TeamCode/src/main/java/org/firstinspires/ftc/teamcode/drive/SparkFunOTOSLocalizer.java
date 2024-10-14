@@ -92,8 +92,8 @@ public class SparkFunOTOSLocalizer implements Localizer {
         // the origin. If your robot does not start at the origin, or you have
         // another source of location information (eg. vision odometry), you can set
         // the OTOS location to match and it will continue to track from there.
-        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(36, -36, 0);
-        myOtos.setPosition(currentPosition);
+        //SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(36, -36, 0);
+        //myOtos.setPosition(currentPosition);
 
         // Get the hardware and firmware version
         SparkFunOTOS.Version hwVersion = new SparkFunOTOS.Version();

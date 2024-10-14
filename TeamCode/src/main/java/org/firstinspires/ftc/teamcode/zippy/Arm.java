@@ -109,11 +109,11 @@ public class Arm {
     }
 
     public void open() {
-        claw.setPosition(1);
+        claw.setPosition(0);
     }
 
     public void close() {
-        claw.setPosition(0);
+        claw.setPosition(1);
     }
 
     public void outtake() {
