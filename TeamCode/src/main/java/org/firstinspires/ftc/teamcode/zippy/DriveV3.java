@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 public class DriveV3 extends OpMode {
     private Arm arm;
     private SampleMecanumDrive drive;
+    private StatusLights lights;
     private boolean clawClosed;
     private boolean clawDebounce;
     private boolean outtakeDebounce;
@@ -18,11 +19,13 @@ public class DriveV3 extends OpMode {
     public void init() {
         drive = new SampleMecanumDrive(hardwareMap);
         arm = new Arm(hardwareMap);
+        lights = new StatusLights(hardwareMap);
 
         clawDebounce = false;
         clawClosed = false;
         outtakeDebounce = false;
         arm.open();
+        drive.update();
     }
 
     @Override
@@ -32,6 +35,11 @@ public class DriveV3 extends OpMode {
 
     @Override
     public void loop() {
+        lights.off(0);
+        lights.green(1);
+        lights.red(2);
+        lights.orange(3);
+
         double heading = drive.getPoseEstimate().getHeading();
         double fieldX = -gamepad1.left_stick_y * Math.cos(heading) + -gamepad1.left_stick_x * Math.sin(heading);
         double fieldY = -gamepad1.left_stick_y * -Math.sin(heading) + -gamepad1.left_stick_x * Math.cos(heading);
@@ -50,7 +58,6 @@ public class DriveV3 extends OpMode {
         telemetry.addData("x", poseEstimate.getX());
         telemetry.addData("y", poseEstimate.getY());
         telemetry.addData("heading", poseEstimate.getHeading());
-        telemetry.update();
 
         if (gamepad1.right_bumper) {
             if (!clawDebounce) {
