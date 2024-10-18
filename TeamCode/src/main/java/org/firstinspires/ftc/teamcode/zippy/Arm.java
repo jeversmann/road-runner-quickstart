@@ -26,7 +26,7 @@ public class Arm {
             case LowChamber:
                 return -1850;
             case LowRung:
-                return 0;
+                return -1570;
             case HighChamber:
                 return -1250;
             case LowBasket:
@@ -36,7 +36,7 @@ public class Arm {
             case WallIntake:
                 return 0;
             case Intake:
-                return -2300;
+                return -2440;
             case Submersible:
                 return -2100;
             case Zero:

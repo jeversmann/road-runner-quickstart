@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.zippy;
 
+import static org.firstinspires.ftc.teamcode.zippy.BlueSpecimenAuto.robotInBlueObservationCorner;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -25,7 +27,7 @@ public class DriveV3 extends OpMode {
         clawClosed = false;
         outtakeDebounce = false;
         arm.open();
-        drive.update();
+        drive.setPoseEstimate(robotInBlueObservationCorner);
     }
 
     @Override
